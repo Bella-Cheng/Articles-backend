@@ -1,0 +1,27 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  /// 使用者唯一識別 ID，自動遞增
+  id        Int      @id @default(autoincrement())
+  /// 電子郵件，必須唯一
+  email     String   @unique
+  /// 使用者名稱
+  name      String   @db.VarChar(255)
+  /// 密碼雜湊（只在官網註冊才有）
+  password  String   @db.VarChar(255)
+  /// 第三方 OAuth 的唯一使用者 ID（例如 Google 的 sub）
+  providerUserId String @unique @db.VarChar(255)
+  /// 更新人
+  modifier String   @db.VarChar(255)
+  /// 更新時間，預設為現在時間
+  modifyAt DateTime @updatedAt
+  /// 建立時間，預設為現在時間
+  createdAt DateTime @default(now())
+}
