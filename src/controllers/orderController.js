@@ -63,8 +63,50 @@ const createOrder = async (req, res) => {
     });
   } catch (err) {
     console.error('訂單成立發生錯誤', err);
-    res.status(500).json({ message: '伺服器錯誤', error: err.message });
+    res.status(500).json({ message: '訂單成立發生錯誤', error: err.message });
   }
 };
 
-module.exports = { createOrder };
+const cancelOrder = async(req, res) => {
+  const userId = req.user?.id;
+  const { orderId } = req.body;
+
+  if(!userId){
+    return res.status(401).json({ message: '請登入' });
+  }
+  if(!orderId){
+    return res.status(401).json({ message: '請傳入訂單編號' });
+  }
+
+  try{
+    const order  = prisma.order.findUnique({
+      where: { id: orderId }
+    })
+
+    if (!order || order.userId !== userId) {
+      return res.status(404).json({ message: '找不到訂單' });
+    }
+
+    if (order.status === 'paid') {
+      return res.status(400).json({ message: '訂單已付款，無法取消' });
+    }
+
+    if (order.status !== 'pending') {
+      return res.status(400).json({ message: '此訂單目前狀態不可取消' });
+    }
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status: 'canceled' }
+    });
+
+    res.json({ message: '訂單已成功取消' });
+
+
+  }catch(err){
+    console.error('取消訂單發生錯誤', err);
+    res.status(500).json({ message: '取消訂單發生錯誤', error: err.message });
+  }
+}
+
+module.exports = { createOrder, cancelOrder };
