@@ -6,7 +6,7 @@ const googleAuthRoutes = require('./src/routes/authGoogleRoutes');
 
 // 中間件
 app.use(express.json());
-cors(app)
+cors(app);
 app.use('/api/googleAuth', googleAuthRoutes);
 
 // 健康檢查
