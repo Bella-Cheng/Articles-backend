@@ -9,7 +9,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const authGoogleLogin = async (req, res) => {
   const { id_token } = req.body;
-  if (!id_token) return res.status(400).json({ error: 'Missing id_token' });
+  if (!id_token) return res.status(400).json({ success: false, error: 'Missing id_token' });
 
   try {
     // 驗證 Google ID Token
@@ -22,17 +22,24 @@ const authGoogleLogin = async (req, res) => {
     const { email, name, sub: googleId } = payload;
     // 查詢資料庫或創建帳號
     let user = await prisma.user.findUnique({
-      where: { providerUserId: googleId },
+      where: { email: encrypt(email) },
     });
+
+    if (user && user.providerUserId != googleId) {
+        return res.status(400).json({
+            success: false,
+            message: '用戶已存在'
+        });
+    }
+
     if (!user) {
-      // 註冊新帳號（實際應該寫入資料庫）
+      // 註冊新帳號
       user = await prisma.user.create({
         data: {
           email: encrypt(email),
           name: encrypt(name),
-          password: '', // 第三方登入不需要密碼，可設空
+          password: '',
           providerUserId: googleId,
-          modifier: 'google', // 你可以寫來源
         },
       });
       console.log('🔐 新用戶註冊：', user.id);
@@ -53,10 +60,10 @@ const authGoogleLogin = async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.json({ token, user: decryptedUser });
+    res.json({ success: true, token, user: decryptedUser });
   } catch (err) {
     console.error('❌ 驗證失敗：', err);
-    res.status(401).json({ error: 'Invalid Google token' });
+    res.status(401).json({ success: false, error: 'Invalid Google token' });
   }
 };
 

@@ -3,11 +3,13 @@ const cors = require('./src/config/cors');
 const app = express();
 const PORT = 3000;
 const googleAuthRoutes = require('./src/routes/authGoogleRoutes');
+const userRoutes = require('./src/routes/userRoutes');
 
 // 中間件
 app.use(express.json());
 cors(app);
 app.use('/api/googleAuth', googleAuthRoutes);
+app.use('/api/user', userRoutes);
 
 // 健康檢查
 app.get('/health', (req, res) => {
