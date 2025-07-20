@@ -1,10 +1,12 @@
 const express = require('express');
+const cors = require('./src/config/cors');
 const app = express();
 const PORT = 3000;
 const googleAuthRoutes = require('./src/routes/authGoogleRoutes');
 
 // 中間件
 app.use(express.json());
+cors(app)
 app.use('/api/googleAuth', googleAuthRoutes);
 
 // 健康檢查
