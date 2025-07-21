@@ -69,7 +69,7 @@ const createOrder = async (req, res) => {
 
 const cancelOrder = async(req, res) => {
   const userId = req.user?.id;
-  const { orderId } = req.body;
+  const orderId = req.params.id;
 
   if(!userId){
     return res.status(401).json({ message: '請登入' });
@@ -112,7 +112,7 @@ const cancelOrder = async(req, res) => {
 //查單筆訂單
 const getOrder = async(req, res) => {
   const userId = req.user?.id;
-  const { orderId } = req.body;
+  const orderId = req.params.id;
 
   if(!userId){
     return res.status(401).json({ message: '請登入' });

@@ -4,12 +4,16 @@ const app = express();
 const PORT = 3000;
 const googleAuthRoutes = require('./src/routes/authGoogleRoutes');
 const userRoutes = require('./src/routes/userRoutes');
+const orderRoutes = require('./src/routes/orderRoutes');
+
 
 // 中間件
 app.use(express.json());
 cors(app);
 app.use('/api/googleAuth', googleAuthRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/order', orderRoutes);
+
 
 // 健康檢查
 app.get('/health', (req, res) => {
