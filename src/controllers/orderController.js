@@ -79,7 +79,7 @@ const cancelOrder = async(req, res) => {
   }
 
   try{
-    const order  = prisma.order.findUnique({
+    const order  = await prisma.order.findUnique({
       where: { id: orderId }
     })
 
@@ -109,4 +109,75 @@ const cancelOrder = async(req, res) => {
   }
 }
 
-module.exports = { createOrder, cancelOrder };
+//查單筆訂單
+const getOrder = async(req, res) => {
+  const userId = req.user?.id;
+  const { orderId } = req.body;
+
+  if(!userId){
+    return res.status(401).json({ message: '請登入' });
+  }
+  if(!orderId){
+    return res.status(401).json({ message: '請傳入訂單編號' });
+  }
+
+  try{
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true }
+    })
+
+    if (!order || order.userId !== userId) {
+      return res.status(404).json({ message: '找不到訂單' });
+    }
+
+    res.json({
+      message: '訂單查詢成功',
+      order,
+    });
+
+  }catch(err){
+    console.error('查詢單筆訂單發生錯誤', err);
+    res.status(500).json({ message: '查詢單筆訂單發生錯誤', error: err.message });
+  }
+}
+
+const getAllOrder = async(req, res) => {
+  const userId = req.user?.id;
+  const { status, sort } = req.query;
+
+  if(!userId){
+    return res.status(401).json({ message: '請登入' });
+  }
+
+  const orderBy = {
+    createdAt: sort === 'asc' ? 'asc' : 'desc',
+  };
+
+  const where = { userId };
+  if (status) {
+    where.status = status;
+  }
+
+  try{
+    const orders = await prisma.order.findMany({
+      where,
+      include: { items: true },
+      orderBy,
+    });
+
+    res.json({
+      message: '訂單查詢成功',
+      orders,
+    });
+    
+
+  }catch(err){
+    console.error('查詢訂單發生錯誤', err);
+    res.status(500).json({ message: '查詢訂單發生錯誤', error: err.message });
+
+  }
+
+}
+
+module.exports = { createOrder, cancelOrder, getOrder, getAllOrder };
